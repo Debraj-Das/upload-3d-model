@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Upload 3D Model & Textures{% endblock %}
+{% block extra_link %}
+<link rel="stylesheet" href="{% static 'upload/css/upload_model_style.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Upload 3D Model & Textures</h1>
+
+<form method="post" enctype="multipart/form-data" action="{% url 'upload_model' %}">
+    {% csrf_token %}
+
+    <!-- Project Uniqe Name -->
+    <div class="form-group">
+        <label for="project_name">Product Id:</label>
+        <input type="text" id="project_name" name="project_name" required placeholder="Enter Product Id"
+            value="{{ project_name|default_if_none:'' }}">
+    </div>
+
+    <!-- Model Section -->
+    <div class="model-section">
+        <div class="section-title">
+            <span>🎯</span>
+            3D Model File
+        </div>
+        <div class="form-group">
+            <label for="model_file">Select Blender Model (*.blend):</label>
+            <div class="file-upload-area" id="modelUploadArea">
+                <div class="upload-icon">📦</div>
+                <div class="upload-text">Click to select .blend file or drag and drop</div>
+                <div class="upload-hint">Supports .blend files</div>
+                <input type="file" id="model_file" name="model_file" class="file-input" accept=".blend" required>
+            </div>
+            <div class="file-count" id="modelFileCount"></div>
+        </div>
+    </div>
+
+    <!-- Textures Section -->
+    <div class="model-section">
+        <div class="section-title">
+            <span>🎨</span>
+            Texture Parts
+        </div>
+
+        
+        <div id="texture-parts-container">
+            <!-- Dynamic texture parts will be added here -->
+        </div>
+        <button type="button" class="add-part-btn" onclick="addTexturePart()">
+            <span>+</span>
+            Add Texture Part
+        </button>
+    </div>
+
+    <button type="submit" class="submit-btn">Upload Model & Textures</button>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'project_list' %}" class="back-btn"> Cancel </a>
+    </div>
+</form>
+{% endblock %}
+{% block script %}
+<script>
+    let partCounter = 0;
+
+    // Model file upload handling
+    const modelUploadArea = document.getElementById('modelUploadArea');
+    const modelFileInput = document.getElementById('model_file');
+    const modelFileCount = document.getElementById('modelFileCount');
+
+    modelFileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            modelFileCount.textContent = `Selected: ${file.name}`;
+        }
+    });
+
+    // Model file drag and drop
+    modelUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        modelUploadArea.classList.add('dragover');
+    });
+
+    modelUploadArea.addEventListener('dragleave', () => {
+        modelUploadArea.classList.remove('dragover');
+    });
+
+    modelUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        modelUploadArea.classList.remove('dragover');
+
+        const files = Array.from(e.dataTransfer.files).filter(file => file.name.endsWith('.blend'));
+        if (files.length > 0) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            modelFileInput.files = dt.files;
+            modelFileCount.textContent = `Selected: ${files[0].name}`;
+        }
+    });
+
+    modelUploadArea.addEventListener('click', (e) => {
+        if (e.target !== modelFileInput) {
+            modelFileInput.click();
+        }
+    });
+
+    // Add texture part functionality
+    function addTexturePart() {
+        partCounter++;
+        const container = document.getElementById('texture-parts-container');
+
+        const partDiv = document.createElement('div');
+        partDiv.className = 'texture-part';
+        partDiv.id = `texture-part-${partCounter}`;
+
+        partDiv.innerHTML = `
+                <button type="button" class="delete-part-btn" onclick="removeTexturePart(${partCounter})">
+                    Remove
+                </button>
+                
+                <div class="part-header">
+                    <div class="part-title">Texture Part ${partCounter}</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="object_name_${partCounter}">Object Name:</label>
+                    <input type="text" id="object_name_${partCounter}" name="object_names[]" required placeholder="Enter object name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="textures_${partCounter}">Texture Files:</label>
+                    <div class="file-upload-area" id="textureUploadArea_${partCounter}">
+                        <div class="upload-icon">🎨</div>
+                        <div class="upload-text">Click to select texture files or drag and drop</div>
+                        <div class="upload-hint">Supports JPG, PNG, GIF files</div>
+                        <input type="file" id="textures_${partCounter}" name="textures_${partCounter}[]" class="file-input" multiple accept="image/*" required>
+                    </div>
+                    <div class="image-preview" id="texturePreview_${partCounter}"></div>
+                    <div class="file-count" id="textureFileCount_${partCounter}"></div>
+                </div>
+            `;
+
+        container.appendChild(partDiv);
+        initializeTextureUpload(partCounter);
+    }
+
+    function removeTexturePart(partId) {
+        const partDiv = document.getElementById(`texture-part-${partId}`);
+        if (partDiv) {
+            partDiv.remove();
+        }
+    }
+
+    function initializeTextureUpload(partId) {
+        const uploadArea = document.getElementById(`textureUploadArea_${partId}`);
+        const fileInput = document.getElementById(`textures_${partId}`);
+        const preview = document.getElementById(`texturePreview_${partId}`);
+        const fileCount = document.getElementById(`textureFileCount_${partId}`);
+
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', function (e) {
+            const files = Array.from(e.target.files);
+            selectedFiles.push(...files);
+            updateFileList();
+            updatePreview();
+            updateFileCount();
+        });
+
+        function updatePreview() {
+            preview.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'preview-item';
+                    previewItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <button type="button" class="remove-btn" onclick="removeFile(${partId}, ${index})">×</button>
+                        `;
+                    preview.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateFileCount() {
+            const count = selectedFiles.length;
+            fileCount.textContent = count > 0 ? `${count} file${count !== 1 ? 's' : ''} selected` : '';
+        }
+
+        function updateFileList() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+        }
+
+        // Make removeFile function available globally for this part
+        window[`removeFile_${partId}`] = function (fileIndex) {
+            selectedFiles.splice(fileIndex, 1);
+            updateFileList();
+            updatePreview();
+            updateFileCount();
+        };
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            selectedFiles.push(...files);
+            updateFileList();
+            updatePreview();
+            updateFileCount();
+        });
+
+        uploadArea.addEventListener('click', (e) => {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+    }
+
+    // Global function to remove files (needed for the remove buttons)
+    function removeFile(partId, fileIndex) {
+        window[`removeFile_${partId}`](fileIndex);
+    }
+
+    // Add initial texture part
+    addTexturePart();
+</script>
+{% endblock %}

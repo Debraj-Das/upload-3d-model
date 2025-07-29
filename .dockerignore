@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+build/
+dist/
+.git
+db.sqlite3
+media/output/
+media/uploads/*
+media/errs/*
+media/logs/*

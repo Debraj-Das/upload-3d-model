@@ -1,0 +1,8 @@
+__pycache__/
+media/uploads/*
+media/output/
+media/logs/*
+media/errs/*
+db.sqlite3
+*.pyc
+migrations/
