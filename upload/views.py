@@ -15,6 +15,7 @@ import random
 import shutil
 from .render_project_images import render_project_images
 import uuid
+from django.views.decorators.http import require_GET, require_POST
 
 def upload_model(request):
     if request.method == 'POST':
@@ -142,3 +143,50 @@ def generate_images(request):
             return redirect('project_detail', pk=project.pk)
 
     return redirect('project_list')
+
+
+def get_model_path(request, product_id):
+    project = get_object_or_404(Project, project_name=product_id)
+    model_url = project.model_file.url if project.model_file else None
+    return JsonResponse({'model_file': model_url})
+
+def get_textures(request, product_id):
+    project = get_object_or_404(Project, project_name=product_id)
+    texture_parts = []
+    for part in project.texture_parts.all():
+        files = [tf.file.url for tf in part.texture_files.all()]
+        texture_parts.append({
+            'object_name': part.object_name,
+            'files': files
+        })
+    return JsonResponse({'texture_parts': texture_parts})
+
+
+
+
+def get_rendered_images(request, product_id):
+    try:
+        project = get_object_or_404(Project, project_name=product_id)
+
+        output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name))
+        if not os.path.exists(output_dir):
+            return JsonResponse({'error': 'No images found for this project.'}, status=404)
+        
+        texture_ids = []
+        for part in project.texture_parts.all():
+            texture_ids.append(request.GET.get(str(part.object_name), ""))
+
+        images = []
+        for file in sorted(os.listdir(output_dir)):
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                check = True
+                for texture_id in texture_ids:
+                    if texture_id == "" or texture_id not in file:
+                        check = False
+                        break
+                if check:
+                    images.append(os.path.join(settings.MEDIA_URL, 'output', str(project.project_name), file))
+
+        return JsonResponse({'images': images})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON body.'}, status=400)
