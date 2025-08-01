@@ -60,6 +60,24 @@
     {% endif %}
 </div>
 
+{% if project.low_quality_model_file %}
+<div class="model-section">
+    <h2 class="section-title">
+        <span>📦</span>
+        3D Model File For 3D Views
+    </h2>
+    <div class="model-file">
+        <div class="file-info">
+            <div class="file-details">
+                <div class="file-icon">🎯</div>
+                <h4>GLB Model File</h4>
+            </div>
+            <a href="{{ project.low_quality_model_file.url }}" class="download-btn" download>Download</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="model-section">
     <h2 class="section-title">
         <span>🎨</span>

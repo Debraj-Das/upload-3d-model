@@ -8,6 +8,10 @@ def upload_model_path(instance, filename):
     unique_filename = f"{uuid.uuid4().hex}{ext}"
     return f'uploads/models/{instance.project_name}/{unique_filename}'
 
+def upload_LQ_model_path(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    return f'uploads/LQ_models/{instance.project_name}/{unique_filename}'
 
 def upload_texture_path(instance, filename):
     ext = os.path.splitext(filename)[1]
@@ -19,6 +23,7 @@ class Project(models.Model):
     project_name = models.CharField(max_length=300, unique=True)
     view_name = models.CharField(max_length=200)
     model_file = models.FileField(upload_to=upload_model_path, null=True, blank=True)
+    low_quality_model_file = models.FileField(upload_to=upload_LQ_model_path, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

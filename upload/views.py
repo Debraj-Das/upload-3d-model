@@ -21,6 +21,7 @@ def upload_model(request):
     if request.method == 'POST':
         view_name = request.POST.get('project_name')
         model_file = request.FILES.get('model_file')
+        low_quality_model_file = request.FILES.get('low_quality_model_file')
         object_names = request.POST.getlist('object_names[]')
         
         
@@ -40,6 +41,7 @@ def upload_model(request):
             project_name=project_name,
             view_name = view_name,
             model_file=model_file,
+            low_quality_model_file=low_quality_model_file,
             user=request.user if request.user.is_authenticated else None
         )
         
@@ -109,18 +111,27 @@ def delete_project(request, pk):
         try:
             if os.path.exists(model_dir):
                 shutil.rmtree(model_dir)
+
+            low_quality_model_file_dir = os.path.join(settings.MEDIA_ROOT, 'uploads/LQ_models', str(project.project_name))
+            if os.path.exists(low_quality_model_file_dir):
+                shutil.rmtree(low_quality_model_file_dir)
+
             textures = os.path.join(settings.MEDIA_ROOT, 'uploads/textures', str(project.project_name))
             if os.path.exists(textures):
                 shutil.rmtree(textures)
+
             output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name))
             if os.path.exists(output_dir):
                 shutil.rmtree(output_dir)
+
             err_file = os.path.join(settings.MEDIA_ROOT,'errs', str(project.project_name))
             if os.path.isfile(err_file):
                 os.remove(err_file)
+
             log_file = os.path.join(settings.MEDIA_ROOT, 'logs', str(project.project_name))
             if os.path.isfile(log_file):
                 os.remove(log_file)
+                
             project.delete()
             messages.success(request, 'Project deleted successfully!')
         except OSError as e:
@@ -147,7 +158,7 @@ def generate_images(request):
 
 def get_model_path(request, product_id):
     project = get_object_or_404(Project, project_name=product_id)
-    model_url = project.model_file.url if project.model_file else None
+    model_url = project.low_quality_model_file.url if project.low_quality_model_file else None
     return JsonResponse({'model_file': model_url})
 
 def get_textures(request, product_id):
