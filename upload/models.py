@@ -5,12 +5,12 @@ import uuid
 
 def upload_model_path(instance, filename):
     ext = os.path.splitext(filename)[1]
-    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    unique_filename = f"{instance.project_name}{ext}"
     return f'uploads/models/{instance.project_name}/{unique_filename}'
 
 def upload_LQ_model_path(instance, filename):
     ext = os.path.splitext(filename)[1]
-    unique_filename = f"{uuid.uuid4().hex}{ext}"
+    unique_filename = f"{instance.project_name}{ext}"
     return f'uploads/LQ_models/{instance.project_name}/{unique_filename}'
 
 def upload_texture_path(instance, filename):

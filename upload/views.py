@@ -120,18 +120,18 @@ def delete_project(request, pk):
             if os.path.exists(textures):
                 shutil.rmtree(textures)
 
-            output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name))
+            output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name) )
             if os.path.exists(output_dir):
                 shutil.rmtree(output_dir)
 
-            err_file = os.path.join(settings.MEDIA_ROOT,'errs', str(project.project_name))
+            err_file = os.path.join(settings.MEDIA_ROOT,'errs', str(project.project_name) + '.err')
             if os.path.isfile(err_file):
                 os.remove(err_file)
 
-            log_file = os.path.join(settings.MEDIA_ROOT, 'logs', str(project.project_name))
+            log_file = os.path.join(settings.MEDIA_ROOT, 'logs', str(project.project_name) + 'log')
             if os.path.isfile(log_file):
                 os.remove(log_file)
-                
+
             project.delete()
             messages.success(request, 'Project deleted successfully!')
         except OSError as e:
@@ -157,12 +157,12 @@ def generate_images(request):
 
 
 def get_model_path(request, product_id):
-    project = get_object_or_404(Project, project_name=product_id)
+    project = get_object_or_404(Project, view_name=product_id)
     model_url = project.low_quality_model_file.url if project.low_quality_model_file else None
     return JsonResponse({'model_file': model_url})
 
 def get_textures(request, product_id):
-    project = get_object_or_404(Project, project_name=product_id)
+    project = get_object_or_404(Project, view_name=product_id)
     texture_parts = []
     for part in project.texture_parts.all():
         files = [tf.file.url for tf in part.texture_files.all()]
@@ -177,7 +177,7 @@ def get_textures(request, product_id):
 
 def get_rendered_images(request, product_id):
     try:
-        project = get_object_or_404(Project, project_name=product_id)
+        project = get_object_or_404(Project, view_name=product_id)
 
         output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name))
         if not os.path.exists(output_dir):
@@ -189,7 +189,7 @@ def get_rendered_images(request, product_id):
 
         images = []
         for file in sorted(os.listdir(output_dir)):
-            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) and product_id in file:
                 check = True
                 for texture_id in texture_ids:
                     if texture_id == "" or texture_id not in file:
