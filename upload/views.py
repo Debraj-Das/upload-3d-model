@@ -1,21 +1,23 @@
-from django.shortcuts import redirect, render
-from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views.generic import ListView, DetailView
-from .models import Project, TexturePart, TextureFile
-from .forms import ProjectForm, TexturePartForm
 import json
-from admin import settings
 import os
 import random
 import shutil
-from .render_project_images import render_project_images
 import uuid
+
+from django.contrib import messages
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from django.views.generic import DetailView, ListView
+
+from admin import settings
+
+from .forms import ProjectForm, TexturePartForm
+from .models import Project, TextureFile, TexturePart
+from .render_project_images import render_project_images
+
 
 def upload_model(request):
     if request.method == 'POST':
@@ -65,11 +67,7 @@ def upload_model(request):
                         original_filename=texture_file.name
                     )
         
-        messages.success(request, f'Project "{project_name}" uploaded successfully!')
-
-        print(f'Project "{project_name}" uploaded successfully!')
-        print(f'Model file: {model_file.name}')
-
+        messages.success(request, f'Project "{view_name}" uploaded successfully!')
 
         return redirect('project_detail', pk=project.pk)
     

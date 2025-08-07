@@ -81,9 +81,13 @@
                 Add Texture Part
             </button>
         </div>
-        <button type="submit" class="submit-btn">Upload Model & Textures</button>
+        <button type="submit" class="submit-btn" id="submitId">Upload Model & Textures</button>
         <div style="text-align: center; margin-top: 20px">
             <a href="{% url 'project_list' %}" class="back-btn">Cancel</a>
+        </div>
+        <div id="upload-loader" class="upload-loader" style="display: none">
+            <div class="spinner"></div>
+            <div class="loader-text">Uploading... Please wait</div>
         </div>
     </form>
 {% endblock %}
@@ -276,5 +280,9 @@
 
     // Add initial texture part
     addTexturePart()
+
+    document.getElementById('submitId').addEventListener("click", function () {
+        document.getElementById("upload-loader").style.display = "flex"
+    })
     </script>
 {% endblock %}
