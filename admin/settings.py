@@ -13,15 +13,20 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+dotenv_file = os.path.join(BASE_DIR, ".env")
+if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3-8eb_ex)q=gw=_aso-@g8=w1)hw=dt*#1#@hh1gi3zu()4j##'
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -69,7 +74,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'admin.wsgi.application'
-
+ASGI_APPLICATION = 'admin.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -146,5 +151,4 @@ ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']
 ALLOWED_MODEL_EXTENSIONS = ['.blend']
 
 LOGIN_REDIRECT_URL = '/'         # where to go after login
-LOGOUT_REDIRECT_URL = '/accounts/login/'  # after logout
 LOGOUT_REDIRECT_URL = '/'

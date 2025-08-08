@@ -1,6 +1,9 @@
 import os
-from admin import settings
 import subprocess
+from pathlib import Path
+
+from admin import settings
+
 
 def render_project_images(project):
     model_file = os.path.join(settings.MEDIA_ROOT, str(project.model_file))
@@ -23,11 +26,11 @@ def render_project_images(project):
             command.append(part_name)
             command.append(part_path)
 
-    logs = os.path.join(settings.MEDIA_ROOT, "logs")
+    logs = Path(os.path.join(settings.MEDIA_ROOT, "logs"))
     if not logs.exists():
         logs.mkdir(parents=True)
 
-    errs = os.path.join(settings.MEDIA_ROOT, "errs")
+    errs = Path(os.path.join(settings.MEDIA_ROOT, "errs"))
     if not errs.exists():
         errs.mkdir(parent=True)
 
