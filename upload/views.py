@@ -104,7 +104,7 @@ class ProjectDetailView(DetailView):
 
 def delete_project(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if request.user.is_authenticated and project.user == request.user:
+    if not project.user or request.user.is_authenticated and project.user == request.user:
         model_dir = os.path.join(settings.MEDIA_ROOT,'uploads/models', str(project.project_name))
         try:
             if os.path.exists(model_dir):

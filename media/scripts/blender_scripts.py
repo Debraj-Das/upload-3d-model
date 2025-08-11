@@ -11,10 +11,13 @@ body = bpy.data.objects.get("body")
 # === RENDER SETTINGS ===
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
-scene.cycles.device = 'CPU'
-scene.render.resolution_x = 1024
-scene.render.resolution_y = 720
+scene.cycles.device = 'GPU'
+scene.render.resolution_x = 1920
+scene.render.resolution_y = 1020
+scene.cycles.samples = 100
+scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'JPEG'
+# scene.render.film_transparent = True
 
 
 model_file = str(sys.argv[3])
