@@ -4,16 +4,13 @@ import math
 import sys
 
 # Constants
-N = 72
-rotation_step = 360 / N
-body = bpy.data.objects.get("body")
 
 # === RENDER SETTINGS ===
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
 scene.cycles.device = 'GPU'
 scene.render.resolution_x = 1920
-scene.render.resolution_y = 1020
+scene.render.resolution_y = 1080
 scene.cycles.samples = 100
 scene.render.resolution_percentage = 100
 scene.render.image_settings.file_format = 'JPEG'
@@ -26,13 +23,16 @@ model_file_basename_without_ext = os.path.splitext(os.path.basename(model_file))
 output_dir = str(sys.argv[6])
 os.makedirs(output_dir, exist_ok=True)
 
+N = int(sys.argv[7])
+rotation_step = 360 / N
+body = bpy.data.objects.get("body")
+
 target_names = []
 target_paths = []
 
-for i in range(7, len(sys.argv), 2):
+for i in range(8, len(sys.argv), 2):
     target_names.append(sys.argv[i])
     target_paths.append(sys.argv[i+1])
-
 
 
 def assign_material(name, texture_path):
@@ -91,7 +91,7 @@ def render(textures_files):
     for i in range(N):
         angle = math.radians(i * rotation_step)
         body.rotation_euler[2] = angle
-        scene.render.filepath = os.path.join(output_dir, f"{output}_{i+1}.jpg")
+        scene.render.filepath = os.path.join(output_dir, f"{output}_{i+1:02d}.jpg")
         bpy.ops.render.render(write_still=True)
         print(f"Rendered image {i+1}/{N}")
 

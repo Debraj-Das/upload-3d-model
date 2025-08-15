@@ -26,6 +26,7 @@ urlpatterns = [
     path('project/<int:pk>/', views.ProjectDetailView.as_view(), name='project_detail'),
     path('project/<int:pk>/delete/', views.delete_project, name='delete_project'),
     path('generate-images/', views.generate_images, name='generate_images'),
+    path('generate-test-images/', views.generate_test_images, name='generate_test_images'),
     path('api/<str:product_id>/model', views.get_model_path, name='api_get_model'),
     path('api/<str:product_id>/textures', views.get_textures, name='api_get_textures'),
     path('api/<str:product_id>/images', views.get_rendered_images, name='api_get_images'),

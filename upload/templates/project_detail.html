@@ -34,6 +34,11 @@
             <input type="hidden" name="project_id" value="{{ project.id }}">
             <button type="submit" class="generate-btn">Generate 360 images</button>
         </form>
+        <form id="generate-form" method="POST" action="{% url 'generate_test_images' %}">
+            {% csrf_token %}
+            <input type="hidden" name="project_id" value="{{ project.id }}">
+            <button type="submit" class="generate-btn">Generate test images</button>
+        </form>
         <a href="{% url 'delete_project' project.pk %}" class="delete-btn"
             onclick="return confirm('Are you sure you want to delete this project?')">Delete</a>
         {% endif %}

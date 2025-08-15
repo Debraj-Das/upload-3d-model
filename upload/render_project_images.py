@@ -5,7 +5,7 @@ from pathlib import Path
 from admin import settings
 
 
-def render_project_images(project):
+def render_project_images(project, no_of_image):
     model_file = os.path.join(settings.MEDIA_ROOT, str(project.model_file))
     textures_dir = os.path.join(settings.MEDIA_ROOT, 'uploads/textures', str(project.project_name))
     scripts_file = os.path.join(settings.MEDIA_ROOT, "scripts/blender_scripts.py")
@@ -13,7 +13,7 @@ def render_project_images(project):
     output_file = os.path.join(settings.MEDIA_ROOT, "output", str(project))
 
     command = [
-        "blender", "-b", "-noaudio", model_file, "-P", scripts_file, output_file
+        "blender", "-b", "-noaudio", model_file, "-P", scripts_file, output_file, str(no_of_image)
     ]
     for part in project.texture_parts.all():
         part_name = part.object_name

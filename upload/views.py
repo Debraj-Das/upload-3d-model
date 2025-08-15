@@ -147,7 +147,20 @@ def generate_images(request):
         project_id = request.POST.get('project_id')
         project = get_object_or_404(Project, id=project_id)
         if request.user.is_authenticated and project.user == request.user:
-            render_project_images(project)
+            render_project_images(project, 72)
+            messages.success(request, f"Started image generation for {project.view_name}")
+            return redirect('project_detail', pk=project.pk)
+
+    return redirect('project_list')
+
+
+@csrf_exempt
+def generate_test_images(request):
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        project = get_object_or_404(Project, id=project_id)
+        if request.user.is_authenticated and project.user == request.user:
+            render_project_images(project,1)
             messages.success(request, f"Started image generation for {project.view_name}")
             return redirect('project_detail', pk=project.pk)
 
