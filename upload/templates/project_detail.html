@@ -131,10 +131,21 @@
         Output Rendered Images
     </h2>
     {% if output_files %}
+    <div class="output-actions">
+        <button id="download-all-btn" class="download-all-btn">📦 Download All as ZIP</button>
+    </div>
+
     <div class="textures-grid">
         {% for file_url in output_files %}
         <div class="texture-item">
             <img src="{{ file_url }}" alt="Rendered Output" onclick="openModal(this)">
+            <div class="texture-info">
+                <div class="texture-actions">
+                    <button class="download-single-btn" data-url="{{ file_url }}" title="Download this image">
+                        ⬇️ Download
+                    </button>
+                </div>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -150,28 +161,152 @@
         <img class="modal-content" id="modalImage">
     </div>
 </div>
+
+<div id="zip-loader" class="upload-loader" style="display: none">
+    <div class="spinner"></div>
+    <div class="loader-text">Creating ZIP file... Please wait</div>
+</div>
+
 </div>
 {% endblock %}
 
 {% block script %}
 <script>
-    function openModal(imgElement) {
+    window.openModal = function(imgElement) {
         const modal = document.getElementById("imageModal");
         const modalImg = document.getElementById("modalImage");
         modal.style.display = "block";
         modalImg.src = imgElement.src;
     }
 
-    function closeModal() {
+    window.closeModal = function() {
         document.getElementById("imageModal").style.display = "none";
     }
 
+    // Show loader for generate buttons
+    const buttons = document.getElementsByClassName('generate-btn');
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("click", function () {
+            document.getElementById("upload-loader").style.display = "flex"
+        })
+    }
 
-	const buttons = document.getElementsByClassName('generate-btn');
-	for (let i = 0; i < buttons.length; i++) {
-		buttons[i].addEventListener("click", function () {
-			document.getElementById("upload-loader").style.display = "flex"
-		})
+    // Download single image and modal functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal functionality with event delegation
+        document.addEventListener('click', function(e) {
+            // Open modal when clicking on images with modal-trigger class
+            if (e.target.classList.contains('modal-trigger')) {
+                const modal = document.getElementById("imageModal");
+                const modalImg = document.getElementById("modalImage");
+                modal.style.display = "block";
+                modalImg.src = e.target.src;
+            }
+            
+            // Close modal when clicking on close button or modal background
+            if (e.target.classList.contains('close') || e.target.id === 'imageModal') {
+                document.getElementById("imageModal").style.display = "none";
+            }
+        });
+	});
+
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById("imageModal").style.display = "none";
+            }
+        });
+
+        // Download single image buttons
+        const downloadButtons = document.querySelectorAll('.download-single-btn');
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                const filename = url.split('/').pop() || 'rendered_image.png';
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+	//    function openModal(imgElement) {
+	//        const modal = document.getElementById("imageModal");
+	//        const modalImg = document.getElementById("modalImage");
+	//        modal.style.display = "block";
+	//        modalImg.src = imgElement.src;
+	//    }
+
+	//    function closeModal() {
+	//        document.getElementById("imageModal").style.display = "none";
+	//    }
+
+
+	// const buttons = document.getElementsByClassName('generate-btn');
+	// for (let i = 0; i < buttons.length; i++) {
+	// 	buttons[i].addEventListener("click", function () {
+	// 		document.getElementById("upload-loader").style.display = "flex"
+	// 	})
+	// }
+
+
+	// const downloadButtons = document.querySelectorAll('.download-single-btn');
+	// downloadButtons.forEach(button => {
+	// 	button.addEventListener('click', function() {
+	// 		const url = this.getAttribute('data-url');
+	// 		const filename = url.split('/').pop() || 'rendered_image.png';
+			
+	// 		const link = document.createElement('a');
+	// 		link.href = url;
+	// 		link.download = filename;
+	// 		document.body.appendChild(link);
+	// 		link.click();
+	// 		document.body.removeChild(link);
+	// 	});
+
+
+	const downloadAllBtn = document.getElementById('download-all-btn');
+	if (downloadAllBtn) {
+		downloadAllBtn.addEventListener('click', function() {
+			// Show loading spinner
+			document.getElementById('zip-loader').style.display = 'flex';
+
+			// Make request to backend to create ZIP
+			fetch('{% url "download_output_zip" project.id %}', {
+				method: 'GET',
+				headers: {
+					'X-CSRFToken': '{{ csrf_token }}'
+				}
+			})
+				.then(response => {
+					if (response.ok) {
+						return response.blob();
+					}
+					throw new Error('Failed to create ZIP file');
+				})
+				.then(blob => {
+					// Create download link
+					const url = window.URL.createObjectURL(blob);
+					const link = document.createElement('a');
+					link.href = url;
+					link.download = '{{ project.view_name }}_output_images.zip';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(url);
+				})
+				.catch(error => {
+					console.error('Error:', error);
+					alert('Failed to download ZIP file. Please try again.');
+				})
+				.finally(() => {
+					// Hide loading spinner
+					document.getElementById('zip-loader').style.display = 'none';
+				});
+		});
 	}
 </script>
 {% endblock %}

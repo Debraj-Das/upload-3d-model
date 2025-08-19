@@ -337,3 +337,50 @@
     font-size: 18px;
     color: #333;
 }
+
+
+/* Output actions section */
+.output-actions {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.download-all-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.download-all-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.download-single-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.download-single-btn:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+.texture-actions {
+    text-align: center;
+    width: 100%;
+}

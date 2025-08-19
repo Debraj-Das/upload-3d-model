@@ -18,6 +18,13 @@ from .forms import ProjectForm, TexturePartForm
 from .models import Project, TextureFile, TexturePart
 from .render_project_images import render_project_images
 
+from django.contrib.auth.decorators import login_required
+from io import BytesIO
+import zipfile
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+import urllib.request
+
 
 def upload_model(request):
     if request.method == 'POST':
@@ -212,3 +219,64 @@ def get_rendered_images(request, product_id):
         return JsonResponse({'images': images})
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON body.'}, status=400)
+
+
+
+@login_required
+def download_output_zip(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    
+    # Check if user has permission to download
+    if project.user != request.user:
+        raise Http404("You don't have permission to download this project's files")
+    
+    # Get the output directory
+    output_dir = os.path.join(settings.MEDIA_ROOT, 'output', str(project.project_name))
+
+    print(output_dir)
+    
+    if not os.path.exists(output_dir):
+        return HttpResponse("No output images found for this project", status=404)
+    
+    # Create a BytesIO object to store the ZIP file in memory
+    zip_buffer = BytesIO()
+    
+    try:
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Get all image files from the output directory
+            image_files = []
+            
+            for file in sorted(os.listdir(output_dir)):
+                if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                    # Check if the file contains the project view_name (similar to your get_rendered_images logic)
+                    if project.project_name in file:
+                        image_files.append(file)
+            
+            if not image_files:
+                print("why this comming")
+                return HttpResponse("No output images found for this project", status=404)
+            
+            # Add each image file to the ZIP
+            for filename in image_files:
+                file_path = os.path.join(output_dir, filename)
+                try:
+                    with open(file_path, 'rb') as f:
+                        file_data = f.read()
+                    
+                    # Add file to ZIP with original filename
+                    zip_file.writestr(filename, file_data)
+                except Exception as e:
+                    print(f"Error adding file {filename} to ZIP: {e}")
+                    continue
+        
+        zip_buffer.seek(0)
+        
+        # Create HTTP response with ZIP file
+        response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{project.view_name}_output_images.zip"'
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error creating ZIP file: {e}")
+        return HttpResponse("Error creating ZIP file", status=500)
