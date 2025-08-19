@@ -90,7 +90,7 @@ def render(textures_files):
 
     for i in range(N):
         angle = math.radians(i * rotation_step)
-        body.rotation_euler[2] = angle
+        body.rotation_euler[1] = angle
         scene.render.filepath = os.path.join(output_dir, f"{output}_{i+1:02d}.jpg")
         bpy.ops.render.render(write_still=True)
         print(f"Rendered image {i+1}/{N}")

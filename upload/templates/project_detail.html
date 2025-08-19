@@ -38,6 +38,11 @@
             {% csrf_token %}
             <input type="hidden" name="project_id" value="{{ project.id }}">
             <button type="submit" class="generate-btn">Generate test images</button>
+
+        <div id="upload-loader" class="upload-loader" style="display: none">
+            <div class="spinner"></div>
+            <div class="loader-text">Uploading... Please wait</div>
+        </div>
         </form>
         <a href="{% url 'delete_project' project.pk %}" class="delete-btn"
             onclick="return confirm('Are you sure you want to delete this project?')">Delete</a>
@@ -160,5 +165,13 @@
     function closeModal() {
         document.getElementById("imageModal").style.display = "none";
     }
+
+
+	const buttons = document.getElementsByClassName('generate-btn');
+	for (let i = 0; i < buttons.length; i++) {
+		buttons[i].addEventListener("click", function () {
+			document.getElementById("upload-loader").style.display = "flex"
+		})
+	}
 </script>
 {% endblock %}
